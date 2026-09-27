@@ -234,10 +234,10 @@ func _build_ui() -> void:
 
 func _spawn_heroes() -> void:
     var positions := [
-        Vector2(330, 510),
-        Vector2(505, 535),
-        Vector2(690, 535),
-        Vector2(875, 510)
+        Vector2(300, 520),
+        Vector2(585, 535),
+        Vector2(720, 535),
+        Vector2(1000, 520)
     ]
 
     var defs := DATA.hero_defs()

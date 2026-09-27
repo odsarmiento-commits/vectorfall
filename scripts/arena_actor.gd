@@ -30,6 +30,8 @@ var moving := false
 var alive := true
 var active := false
 var trail: Array[Vector2] = []
+var sprite_texture: Texture2D = null
+var sprite_scale := 1.0
 
 func setup(data: Dictionary) -> void:
     team = str(data.get("team", "hero"))
@@ -46,6 +48,11 @@ func setup(data: Dictionary) -> void:
     armor = clampf(float(data.get("armor", 0.0)), 0.0, 0.75)
     ai_speed = float(data.get("ai_speed", 700.0))
     body_color = data.get("color", Color("53d5ff"))
+    sprite_scale = float(data.get("sprite_scale", 1.0))
+    sprite_texture = null
+    var sprite_path := str(data.get("sprite_path", ""))
+    if not sprite_path.is_empty() and ResourceLoader.exists(sprite_path):
+        sprite_texture = load(sprite_path)
 
     shield = 0.0
     damage_boost = 1.0
@@ -142,9 +149,22 @@ func _draw() -> void:
     if stunned_turns > 0:
         draw_arc(Vector2.ZERO, radius + 8.0, 0.0, TAU, 32, Color("71cfff"), 4.0)
 
-    draw_circle(Vector2.ZERO, radius, body_color)
-    draw_circle(Vector2.ZERO, radius * 0.60, body_color.lightened(0.18))
-    _draw_glyph()
+    draw_circle(Vector2(0, radius * 0.62), radius * 0.72, Color(0, 0, 0, 0.24))
+
+    if sprite_texture != null:
+        var texture_size := sprite_texture.get_size()
+        var target_height := radius * 3.0 * sprite_scale
+        var scale_factor := target_height / maxf(texture_size.y, 1.0)
+        var target_size := texture_size * scale_factor
+        var target_rect := Rect2(
+            Vector2(-target_size.x * 0.5, -target_size.y * 0.66),
+            target_size
+        )
+        draw_texture_rect(sprite_texture, target_rect, false)
+    else:
+        draw_circle(Vector2.ZERO, radius, body_color)
+        draw_circle(Vector2.ZERO, radius * 0.60, body_color.lightened(0.18))
+        _draw_glyph()
 
     var ratio := clampf(hp / max_hp, 0.0, 1.0)
     var bar := Rect2(Vector2(-radius, -radius - 15.0), Vector2(radius * 2.0, 5.0))

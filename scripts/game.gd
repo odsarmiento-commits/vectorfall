@@ -234,10 +234,10 @@ func _build_ui() -> void:
 
 func _spawn_heroes() -> void:
     var positions := [
-        Vector2(175, 190),
-        Vector2(170, 305),
-        Vector2(175, 420),
-        Vector2(170, 535)
+        Vector2(330, 510),
+        Vector2(505, 530),
+        Vector2(680, 530),
+        Vector2(855, 510)
     ]
 
     var defs := DATA.hero_defs()
@@ -737,33 +737,56 @@ func _heal_popup(pos: Vector2, amount: float) -> void:
     tween.chain().tween_callback(label.queue_free)
 
 func _draw() -> void:
-    draw_rect(Rect2(Vector2.ZERO, Vector2(1280, 720)), Color("07101f"), true)
-    draw_rect(ARENA, Color("0a1729"), true)
-
     var accent: Color = level_data.get("accent", Color("49c9ff"))
-    var grid := Color(accent.r, accent.g, accent.b, 0.08)
+    var level_number := current_level
 
-    var x := ARENA.position.x + 40.0
-    while x < ARENA.end.x:
-        draw_line(Vector2(x, ARENA.position.y), Vector2(x, ARENA.end.y), grid, 1.0)
-        x += 40.0
+    draw_rect(Rect2(Vector2.ZERO, Vector2(1280, 720)), Color("070b18"), true)
 
-    var y := ARENA.position.y + 40.0
-    while y < ARENA.end.y:
-        draw_line(Vector2(ARENA.position.x, y), Vector2(ARENA.end.x, y), grid, 1.0)
-        y += 40.0
+    # Fondo por nivel: capas oscuras con halos de color.
+    var bg_tint := Color(accent.r * 0.15, accent.g * 0.15, accent.b * 0.20, 1.0)
+    draw_rect(Rect2(0, 96, 1280, 526), bg_tint, true)
+    draw_circle(Vector2(170, 175), 210.0, Color(accent.r, accent.g, accent.b, 0.035))
+    draw_circle(Vector2(1110, 455), 260.0, Color(0.45, 0.18, 0.62, 0.055))
 
-    draw_rect(ARENA, Color(accent.r, accent.g, accent.b, 0.55), false, 3.0)
+    # Arena ceremonial inspirada en la referencia: piedra, aros y runas.
+    var center := Vector2(640, 360)
+    var arena_radius := 270.0
+    draw_circle(center, arena_radius + 26.0, Color("10152a"))
+    draw_circle(center, arena_radius + 17.0, Color("25243b"))
+    draw_circle(center, arena_radius + 8.0, Color("3a3441"))
+    draw_circle(center, arena_radius, Color("49404a"))
+
+    for ring in [245.0, 213.0, 177.0, 140.0, 96.0, 52.0]:
+        draw_arc(center, ring, 0.0, TAU, 96, Color(0.72, 0.54, 0.25, 0.52), 1.5)
+
+    # Rosa rúnica central.
+    for angle_index in range(8):
+        var angle := -PI / 2.0 + float(angle_index) * PI / 4.0
+        var p := center + Vector2(cos(angle), sin(angle)) * 91.0
+        draw_line(center, p, Color(accent.r, accent.g, accent.b, 0.58), 2.0)
+        draw_circle(p, 6.0, Color(accent.r, accent.g, accent.b, 0.45))
+
+    draw_circle(center, 34.0, Color(accent.r, accent.g, accent.b, 0.14))
+    draw_arc(center, 38.0, 0.0, TAU, 48, Color(accent.r, accent.g, accent.b, 0.85), 3.0)
+
+    # Detalles ambientales que varían con el nivel.
+    for k in range(6 + level_number):
+        var a := float(k) * TAU / float(6 + level_number) + 0.2
+        var rune_pos := center + Vector2(cos(a), sin(a)) * 232.0
+        draw_circle(rune_pos, 5.0 + float(level_number), Color(accent.r, accent.g, accent.b, 0.28))
+
+    draw_rect(ARENA, Color(accent.r, accent.g, accent.b, 0.22), false, 2.0)
 
     for obstacle in obstacles:
-        draw_rect(obstacle, Color("142d49"), true)
-        draw_rect(obstacle, Color(accent.r, accent.g, accent.b, 0.46), false, 2.0)
+        draw_rect(obstacle, Color("202a42"), true)
+        draw_rect(obstacle, Color(0.72, 0.54, 0.25, 0.72), false, 2.0)
+        var inset: Rect2 = obstacle.grow(-7.0)
+        draw_rect(inset, Color(accent.r, accent.g, accent.b, 0.10), true)
 
     for hero in heroes:
-        _draw_trail(hero, Color(0.35, 0.82, 1.0, 0.25))
-
+        _draw_trail(hero, Color(0.35, 0.82, 1.0, 0.28))
     for enemy in enemies:
-        _draw_trail(enemy, Color(1.0, 0.34, 0.50, 0.20))
+        _draw_trail(enemy, Color(0.88, 0.24, 0.72, 0.24))
 
     if dragging and phase == "player_aim" and active_actor != null:
         var pull: Vector2 = active_actor.position - drag_mouse

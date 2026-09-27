@@ -1,52 +1,187 @@
 extends Control
 
+const DATA = preload("res://scripts/game_data.gd")
+
+var level_box: VBoxContainer
+var progress_label: Label
+
 func _ready() -> void:
+    _build_background()
+    _build_header()
+    _build_level_panel()
+    _build_roster()
+    _refresh_levels()
+
+func _build_background() -> void:
     var bg := ColorRect.new()
     bg.color = Color("07101f")
     bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(bg)
 
-    var box := VBoxContainer.new()
-    box.position = Vector2(120, 120)
-    box.size = Vector2(620, 450)
-    box.add_theme_constant_override("separation", 18)
-    add_child(box)
+    var band := ColorRect.new()
+    band.color = Color("0b1b32")
+    band.position = Vector2(0, 0)
+    band.size = Vector2(1280, 96)
+    band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    add_child(band)
 
-    var kicker := Label.new()
-    kicker.text = "BETA JUGABLE · GODOT 4.6 · PROYECTO ORIGINAL"
-    kicker.add_theme_font_size_override("font_size", 17)
-    kicker.add_theme_color_override("font_color", Color("6fdcff"))
-    box.add_child(kicker)
-
+func _build_header() -> void:
     var title := Label.new()
     title.text = "VECTORFALL"
-    title.add_theme_font_size_override("font_size", 64)
+    title.position = Vector2(54, 20)
+    title.size = Vector2(430, 54)
+    title.add_theme_font_size_override("font_size", 46)
     title.add_theme_color_override("font_color", Color("f4f7ff"))
-    box.add_child(title)
+    add_child(title)
 
-    var subtitle := Label.new()
-    subtitle.text = "Lanza · Rebota · Encadena impactos"
-    subtitle.add_theme_font_size_override("font_size", 22)
-    subtitle.add_theme_color_override("font_color", Color("b8c5d9"))
-    box.add_child(subtitle)
+    var tag := Label.new()
+    tag.text = "BETA · 4 AGENTES · 5 NIVELES"
+    tag.position = Vector2(910, 34)
+    tag.size = Vector2(310, 30)
+    tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+    tag.add_theme_font_size_override("font_size", 16)
+    tag.add_theme_color_override("font_color", Color("6fdcff"))
+    add_child(tag)
 
-    var spacer := Control.new()
-    spacer.custom_minimum_size = Vector2(1, 30)
-    box.add_child(spacer)
+    var intro := Label.new()
+    intro.text = "Lanza, rebota y encadena impactos. Cada agente cubre un rol distinto."
+    intro.position = Vector2(54, 112)
+    intro.size = Vector2(1160, 32)
+    intro.add_theme_font_size_override("font_size", 20)
+    intro.add_theme_color_override("font_color", Color("b7c5d9"))
+    add_child(intro)
 
-    var play := Button.new()
-    play.text = "JUGAR BETA"
-    play.custom_minimum_size = Vector2(340, 62)
-    play.add_theme_font_size_override("font_size", 22)
-    play.pressed.connect(_play)
-    box.add_child(play)
+func _build_level_panel() -> void:
+    var panel := PanelContainer.new()
+    panel.position = Vector2(54, 166)
+    panel.size = Vector2(520, 360)
+    add_child(panel)
 
-    var info := Label.new()
-    info.text = "Arrastra un héroe hacia atrás y suelta.\nRebota contra muros y golpea enemigos.\nESC pausa · R reinicia."
-    info.add_theme_font_size_override("font_size", 18)
-    info.add_theme_color_override("font_color", Color("9fb0c9"))
-    box.add_child(info)
+    var outer := VBoxContainer.new()
+    outer.add_theme_constant_override("separation", 12)
+    panel.add_child(outer)
 
-func _play() -> void:
+    var heading := Label.new()
+    heading.text = "CAMPAÑA"
+    heading.add_theme_font_size_override("font_size", 24)
+    heading.add_theme_color_override("font_color", Color("f3e67c"))
+    outer.add_child(heading)
+
+    progress_label = Label.new()
+    progress_label.add_theme_font_size_override("font_size", 15)
+    progress_label.add_theme_color_override("font_color", Color("9fb0c9"))
+    outer.add_child(progress_label)
+
+    level_box = VBoxContainer.new()
+    level_box.add_theme_constant_override("separation", 8)
+    outer.add_child(level_box)
+
+    var help := Label.new()
+    help.text = "Controles: arrastra al agente activo y suelta · ESPACIO habilidad · ESC pausa · R reinicia"
+    help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    help.custom_minimum_size = Vector2(470, 50)
+    help.add_theme_font_size_override("font_size", 14)
+    help.add_theme_color_override("font_color", Color("8295af"))
+    outer.add_child(help)
+
+func _build_roster() -> void:
+    var heading := Label.new()
+    heading.text = "EQUIPO VECTOR"
+    heading.position = Vector2(620, 166)
+    heading.size = Vector2(590, 32)
+    heading.add_theme_font_size_override("font_size", 24)
+    heading.add_theme_color_override("font_color", Color("f4f7ff"))
+    add_child(heading)
+
+    var grid := GridContainer.new()
+    grid.columns = 2
+    grid.position = Vector2(620, 208)
+    grid.size = Vector2(590, 318)
+    grid.add_theme_constant_override("h_separation", 12)
+    grid.add_theme_constant_override("v_separation", 12)
+    add_child(grid)
+
+    for hero_data in DATA.hero_defs():
+        var card := PanelContainer.new()
+        card.custom_minimum_size = Vector2(285, 145)
+        grid.add_child(card)
+
+        var box := VBoxContainer.new()
+        box.add_theme_constant_override("separation", 5)
+        card.add_child(box)
+
+        var name_label := Label.new()
+        name_label.text = "%s  ·  %s" % [hero_data["name"], hero_data["archetype"]]
+        name_label.add_theme_font_size_override("font_size", 19)
+        name_label.add_theme_color_override("font_color", hero_data["color"])
+        box.add_child(name_label)
+
+        var stats := Label.new()
+        stats.text = "PV %d   DAÑO %d   ARM %d%%" % [
+            int(hero_data["max_hp"]),
+            int(hero_data["damage"]),
+            roundi(float(hero_data["armor"]) * 100.0)
+        ]
+        stats.add_theme_font_size_override("font_size", 13)
+        stats.add_theme_color_override("font_color", Color("b9c6d8"))
+        box.add_child(stats)
+
+        var ability := Label.new()
+        ability.text = "%s — %s" % [hero_data["ability"], hero_data["ability_desc"]]
+        ability.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+        ability.custom_minimum_size = Vector2(255, 55)
+        ability.add_theme_font_size_override("font_size", 13)
+        ability.add_theme_color_override("font_color", Color("d9e2ef"))
+        box.add_child(ability)
+
+    var footer := Label.new()
+    footer.text = "Todos los gráficos de esta beta son originales y generados por el propio proyecto."
+    footer.position = Vector2(620, 542)
+    footer.size = Vector2(590, 42)
+    footer.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    footer.add_theme_font_size_override("font_size", 13)
+    footer.add_theme_color_override("font_color", Color("7487a0"))
+    add_child(footer)
+
+    var reset := Button.new()
+    reset.text = "REINICIAR PROGRESO"
+    reset.position = Vector2(54, 548)
+    reset.size = Vector2(205, 40)
+    reset.pressed.connect(_reset_progress)
+    add_child(reset)
+
+func _refresh_levels() -> void:
+    for child in level_box.get_children():
+        child.queue_free()
+
+    progress_label.text = "Nivel máximo desbloqueado: %d / 5%s" % [
+        GameState.max_unlocked,
+        " · CAMPAÑA COMPLETADA" if GameState.campaign_complete else ""
+    ]
+
+    for level_data in DATA.level_defs():
+        var level_number := int(level_data["number"])
+        var unlocked := level_number <= GameState.max_unlocked
+
+        var button := Button.new()
+        button.custom_minimum_size = Vector2(485, 46)
+        button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+        button.text = "%d. %s  —  %s%s" % [
+            level_number,
+            level_data["name"],
+            level_data["subtitle"],
+            "" if unlocked else "  [BLOQUEADO]"
+        ]
+        button.disabled = not unlocked
+        button.add_theme_font_size_override("font_size", 15)
+        button.pressed.connect(_play_level.bind(level_number))
+        level_box.add_child(button)
+
+func _play_level(level_number: int) -> void:
+    GameState.select_level(level_number)
     get_tree().change_scene_to_file("res://scenes/game.tscn")
+
+func _reset_progress() -> void:
+    GameState.reset_progress()
+    _refresh_levels()

@@ -44,44 +44,44 @@ func _init() -> void:
         quit(1)
         return
 
-    var vektor = game.heroes[0]
-    game.active_actor = vektor
+    var aren = game.heroes[0]
+    game.active_actor = aren
     game.phase = "player_aim"
     game._use_ability()
-    if not vektor.ability_used or vektor.damage_boost <= 1.0 or vektor.speed_boost <= 1.0:
-        push_error("La habilidad de ASALTO no aplicó Sobrecarga.")
+    if not aren.ability_used or aren.damage_boost <= 1.0 or aren.speed_boost <= 1.0:
+        push_error("La habilidad de AREN no aplicó Embestida.")
         quit(1)
         return
 
-    var aegis = game.heroes[1]
-    game.active_actor = aegis
+    var morvak = game.heroes[1]
+    game.active_actor = morvak
     game.phase = "player_aim"
     game._use_ability()
     for hero in game.heroes:
         if hero.shield < 55.0:
-            push_error("FORTALEZA no otorgó escudo al equipo.")
+            push_error("MURO DE HIERRO no otorgó escudo al equipo.")
             quit(1)
             return
 
-    var luma = game.heroes[2]
+    var arelia = game.heroes[2]
     var target = game.heroes[0]
     target.take_damage(90.0)
     var damaged_hp: float = target.hp
 
-    game.active_actor = luma
+    game.active_actor = arelia
     game.phase = "player_aim"
     game._use_ability()
     if target.hp <= damaged_hp:
-        push_error("PULSO VITAL no curó a un aliado dañado.")
+        push_error("DESTELLO REPARADOR no curó a un aliado dañado.")
         quit(1)
         return
 
-    var flux = game.heroes[3]
-    game.active_actor = flux
+    var kaien = game.heroes[3]
+    game.active_actor = kaien
     game.phase = "player_aim"
     game._use_ability()
     if not game.skip_enemy_phase:
-        push_error("CAMPO ESTÁTICO no armó el salto de fase enemiga.")
+        push_error("MAREA SOMBRÍA no armó el salto de fase enemiga.")
         quit(1)
         return
 

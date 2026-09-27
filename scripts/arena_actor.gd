@@ -7,6 +7,7 @@ signal health_changed(actor)
 var team := "hero"
 var actor_name := "UNIDAD"
 var archetype := ""
+var role_label := ""
 var ability_name := ""
 var ability_desc := ""
 var glyph := ""
@@ -37,6 +38,7 @@ func setup(data: Dictionary) -> void:
     team = str(data.get("team", "hero"))
     actor_name = str(data.get("name", "UNIDAD"))
     archetype = str(data.get("archetype", ""))
+    role_label = str(data.get("role_label", archetype))
     ability_name = str(data.get("ability", ""))
     ability_desc = str(data.get("ability_desc", ""))
     glyph = str(data.get("glyph", archetype.to_lower()))

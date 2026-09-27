@@ -45,7 +45,7 @@ func _init() -> void:
 
     var luma = game.heroes[2]
     var target = game.heroes[0]
-    target.take_damage(35.0)
+    target.take_damage(90.0)
     var damaged_hp: float = target.hp
 
     game.active_actor = luma

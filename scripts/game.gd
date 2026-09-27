@@ -45,8 +45,20 @@ var result_title: Label
 var result_text: Label
 var next_button: Button
 
+func _get_game_state() -> Node:
+    return get_node_or_null("/root/GameState")
+
+func _call_game_state(method_name: String, args: Array = []) -> void:
+    var state: Node = _get_game_state()
+    if state != null and state.has_method(method_name):
+        state.callv(method_name, args)
+
 func _ready() -> void:
-    current_level = clampi(GameState.current_level, 1, 5)
+    var state: Node = _get_game_state()
+    if state != null:
+        current_level = clampi(int(state.get("current_level")), 1, 5)
+    else:
+        current_level = 1
     level_data = DATA.get_level(current_level)
     obstacles = level_data["obstacles"].duplicate(true)
 
@@ -309,7 +321,7 @@ func _launch_player() -> void:
         return
 
     dragging = false
-    var pull := active_actor.position - drag_mouse
+    var pull: Vector2 = active_actor.position - drag_mouse
     var strength := minf(pull.length(), MAX_DRAG)
 
     if strength < 24.0:
@@ -376,7 +388,7 @@ func _launch_next_enemy() -> void:
         _finish(false)
         return
 
-    var direction := (target.position - active_actor.position).normalized()
+    var direction: Vector2 = (target.position - active_actor.position).normalized()
     active_actor.launch(direction * active_actor.ai_speed)
 
     phase = "enemy_moving"
@@ -460,7 +472,7 @@ func _check_actor_hits(actor) -> void:
         if actor.position.distance_to(target.position) > actor.radius + target.radius:
             continue
 
-        var key := target.get_instance_id()
+        var key: int = target.get_instance_id()
         if hit_registry.has(key):
             continue
         hit_registry[key] = true
@@ -468,9 +480,9 @@ func _check_actor_hits(actor) -> void:
         combo_hits += 1
         var speed_factor := clampf(actor.velocity.length() / 830.0, 0.62, 1.40)
         var combo_factor := 1.0 + minf(float(maxi(combo_hits - 1, 0)) * 0.10, 0.40)
-        var dealt := target.take_damage(actor.damage * actor.damage_boost * speed_factor * combo_factor)
+        var dealt: float = float(target.take_damage(actor.damage * actor.damage_boost * speed_factor * combo_factor))
 
-        var normal := (actor.position - target.position).normalized()
+        var normal: Vector2 = (actor.position - target.position).normalized()
         if normal == Vector2.ZERO:
             normal = Vector2.RIGHT
 
@@ -526,7 +538,7 @@ func _use_ability() -> void:
             _ability_flash("FORTALEZA · +55 ESCUDO AL EQUIPO")
         "APOYO":
             for hero in _living_heroes():
-                var healed := hero.heal(45.0)
+                var healed: float = float(hero.heal(45.0))
                 if healed > 0.0:
                     _heal_popup(hero.position, healed)
             _ability_flash("PULSO VITAL · EQUIPO RESTAURADO")
@@ -559,7 +571,7 @@ func _finish(victory: bool) -> void:
         result_title.add_theme_color_override("font_color", Color("76edb0"))
 
         if current_level < 5:
-            GameState.unlock_level(current_level + 1)
+            _call_game_state("unlock_level", [current_level + 1])
             result_text.text = "%s asegurado. Se desbloqueó el nivel %d." % [
                 level_data["name"],
                 current_level + 1
@@ -567,7 +579,7 @@ func _finish(victory: bool) -> void:
             next_button.text = "SIGUIENTE NIVEL"
             next_button.visible = true
         else:
-            GameState.complete_campaign()
+            _call_game_state("complete_campaign")
             result_title.text = "BETA COMPLETADA"
             result_text.text = "La Corona Vectorial cayó. Completaste los cinco niveles de la campaña beta."
             next_button.text = "VOLVER A CAMPAÑA"
@@ -582,7 +594,7 @@ func _finish(victory: bool) -> void:
 
 func _next_level() -> void:
     if current_level < 5:
-        GameState.select_level(current_level + 1)
+        _call_game_state("select_level", [current_level + 1])
         get_tree().reload_current_scene()
     else:
         get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
@@ -600,7 +612,7 @@ func _nearest_hero(from_pos: Vector2):
     for hero in heroes:
         if not hero.alive:
             continue
-        var distance := from_pos.distance_squared_to(hero.position)
+        var distance: float = from_pos.distance_squared_to(hero.position)
         if distance < best_distance:
             best_distance = distance
             best = hero
@@ -754,15 +766,15 @@ func _draw() -> void:
         _draw_trail(enemy, Color(1.0, 0.34, 0.50, 0.20))
 
     if dragging and phase == "player_aim" and active_actor != null:
-        var pull := active_actor.position - drag_mouse
-        var clamped := pull.limit_length(MAX_DRAG)
-        var release_point := active_actor.position - clamped
+        var pull: Vector2 = active_actor.position - drag_mouse
+        var clamped: Vector2 = pull.limit_length(MAX_DRAG)
+        var release_point: Vector2 = active_actor.position - clamped
 
         draw_line(active_actor.position, release_point, Color("f9e36a"), 4.0)
         draw_circle(release_point, 8.0, Color("f9e36a"))
 
         if clamped.length() > 24.0:
-            var direction := clamped.normalized()
+            var direction: Vector2 = clamped.normalized()
             for i in range(1, 9):
                 draw_circle(
                     active_actor.position + direction * 43.0 * i,

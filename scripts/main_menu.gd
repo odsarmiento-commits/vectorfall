@@ -5,6 +5,9 @@ const DATA = preload("res://scripts/game_data.gd")
 var level_box: VBoxContainer
 var progress_label: Label
 
+func _get_game_state() -> Node:
+    return get_node_or_null("/root/GameState")
+
 func _ready() -> void:
     _build_background()
     _build_header()
@@ -155,14 +158,21 @@ func _refresh_levels() -> void:
     for child in level_box.get_children():
         child.queue_free()
 
+    var state: Node = _get_game_state()
+    var max_unlocked: int = 1
+    var campaign_complete: bool = false
+    if state != null:
+        max_unlocked = clampi(int(state.get("max_unlocked")), 1, 5)
+        campaign_complete = bool(state.get("campaign_complete"))
+
     progress_label.text = "Nivel máximo desbloqueado: %d / 5%s" % [
-        GameState.max_unlocked,
-        " · CAMPAÑA COMPLETADA" if GameState.campaign_complete else ""
+        max_unlocked,
+        " · CAMPAÑA COMPLETADA" if campaign_complete else ""
     ]
 
     for level_data in DATA.level_defs():
         var level_number := int(level_data["number"])
-        var unlocked := level_number <= GameState.max_unlocked
+        var unlocked := level_number <= max_unlocked
 
         var button := Button.new()
         button.custom_minimum_size = Vector2(485, 46)
@@ -179,9 +189,13 @@ func _refresh_levels() -> void:
         level_box.add_child(button)
 
 func _play_level(level_number: int) -> void:
-    GameState.select_level(level_number)
+    var state: Node = _get_game_state()
+    if state != null and state.has_method("select_level"):
+        state.call("select_level", level_number)
     get_tree().change_scene_to_file("res://scenes/game.tscn")
 
 func _reset_progress() -> void:
-    GameState.reset_progress()
+    var state: Node = _get_game_state()
+    if state != null and state.has_method("reset_progress"):
+        state.call("reset_progress")
     _refresh_levels()

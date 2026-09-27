@@ -7,6 +7,20 @@ const SCENES := [
     "res://scenes/game.tscn",
 ]
 
+func _ensure_game_state() -> Node:
+    var existing: Node = get_root().get_node_or_null("GameState")
+    if existing != null:
+        return existing
+
+    var state_script: Script = load("res://scripts/game_state.gd") as Script
+    if state_script == null:
+        return null
+
+    var state: Node = state_script.new() as Node
+    state.name = "GameState"
+    get_root().add_child(state)
+    return state
+
 func _init() -> void:
     if not _validate_content():
         quit(1)
@@ -17,8 +31,14 @@ func _init() -> void:
             quit(1)
             return
 
+    var state: Node = _ensure_game_state()
+    if state == null:
+        push_error("No se pudo crear GameState para las pruebas.")
+        quit(1)
+        return
+
     for level_number in range(1, 6):
-        GameState.current_level = level_number
+        state.current_level = level_number
         if not await _validate_scene("res://scenes/game.tscn"):
             push_error("El nivel %d no pudo instanciarse." % level_number)
             quit(1)

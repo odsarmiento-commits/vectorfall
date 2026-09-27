@@ -6,18 +6,38 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  statuses: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
+    env:
+      TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Publish validation started status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          curl --fail-with-body -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$TARGET_SHA" \
+            -d '{"state":"pending","context":"vectorfall/godot-beta","description":"Godot 4.6.3 beta validation is running"}'
 
       - name: Download Godot 4.6.3
         shell: bash
         run: |
           set -euo pipefail
-          curl -L --fail --retry 3 -o /tmp/godot.zip             https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          curl -L --fail --retry 3 -o /tmp/godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
           unzip -q /tmp/godot.zip -d /tmp/godot
           BIN="$(find /tmp/godot -maxdepth 1 -type f -name 'Godot_v4.6.3-stable_linux.x86_64*' | head -n1)"
           chmod +x "$BIN"
@@ -27,8 +47,66 @@ jobs:
       - name: Import and parse project
         run: /tmp/godot/godot --headless --editor --path "$GITHUB_WORKSPACE" --quit
 
-      - name: Smoke tests
+      - name: Content and scene smoke tests
         run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --script res://tests/ci_smoke.gd
+
+      - name: Gameplay ability smoke tests
+        run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --script res://tests/gameplay_smoke.gd
 
       - name: Boot main scene
         run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --quit-after 120
+
+      - name: Install export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 -o /tmp/templates.tpz \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_export_templates.tpz
+          rm -rf /tmp/godot_templates
+          mkdir -p /tmp/godot_templates
+          unzip -q /tmp/templates.tpz -d /tmp/godot_templates
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.6.3.stable"
+          cp -R /tmp/godot_templates/templates/. "$HOME/.local/share/godot/export_templates/4.6.3.stable/"
+
+      - name: Export Windows beta
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --export-release "Windows Desktop" build/VECTORFALL_Beta.exe
+          test -f build/VECTORFALL_Beta.exe
+
+      - name: Upload playable beta
+        uses: actions/upload-artifact@v4
+        with:
+          name: VECTORFALL_Beta_Windows
+          path: build/**
+          if-no-files-found: error
+
+      - name: Publish successful validation status
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          curl --fail-with-body -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$TARGET_SHA" \
+            -d '{"state":"success","context":"vectorfall/godot-beta","description":"Godot 4.6.3 validated 4 heroes, 5 levels and Windows export"}'
+
+      - name: Publish failed validation status
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          curl --fail-with-body -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$TARGET_SHA" \
+            -d '{"state":"failure","context":"vectorfall/godot-beta","description":"Godot beta validation failed; inspect Actions logs"}'

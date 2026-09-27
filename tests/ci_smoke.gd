@@ -17,8 +17,14 @@ func _init() -> void:
             quit(1)
             return
 
+    var state = get_root().get_node_or_null("GameState")
+    if state == null:
+        push_error("GameState no está disponible en el árbol de pruebas.")
+        quit(1)
+        return
+
     for level_number in range(1, 6):
-        GameState.current_level = level_number
+        state.current_level = level_number
         if not await _validate_scene("res://scenes/game.tscn"):
             push_error("El nivel %d no pudo instanciarse." % level_number)
             quit(1)

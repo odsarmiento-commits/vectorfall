@@ -4,48 +4,64 @@ class_name GameData
 static func hero_defs() -> Array:
     return [
         {
-            "name": "VEKTOR",
+            "name": "AREN",
             "archetype": "ASALTO",
-            "ability": "SOBRECARGA",
+            "class_label": "GUERRERO",
+            "role_label": "DAÑO FÍSICO / OFENSIVO",
+            "ability": "EMBESTIDA ATRAVESANTE",
             "ability_desc": "El siguiente lanzamiento gana +75% daño y +18% velocidad.",
-            "max_hp": 120.0,
-            "damage": 42.0,
-            "radius": 27.0,
-            "armor": 0.0,
-            "color": Color("43d7ff")
+            "max_hp": 125.0,
+            "damage": 44.0,
+            "radius": 29.0,
+            "armor": 0.04,
+            "color": Color("58b9ff"),
+            "sprite_path": "res://assets/heroes/aren.webp",
+            "sprite_scale": 1.10
         },
         {
-            "name": "AEGIS",
+            "name": "MORVAK",
             "archetype": "TANQUE",
-            "ability": "FORTALEZA",
+            "class_label": "TANQUE",
+            "role_label": "PROTECTOR / CONTROL",
+            "ability": "MURO DE HIERRO",
             "ability_desc": "Otorga 55 de escudo a todo el equipo.",
-            "max_hp": 220.0,
+            "max_hp": 230.0,
             "damage": 28.0,
-            "radius": 34.0,
-            "armor": 0.24,
-            "color": Color("8978ff")
+            "radius": 35.0,
+            "armor": 0.26,
+            "color": Color("a85545"),
+            "sprite_path": "res://assets/heroes/morvak.webp",
+            "sprite_scale": 1.15
         },
         {
-            "name": "LUMA",
+            "name": "ARELIA",
             "archetype": "APOYO",
-            "ability": "PULSO VITAL",
+            "class_label": "MAGA",
+            "role_label": "SOPORTE / CURACIÓN",
+            "ability": "DESTELLO REPARADOR",
             "ability_desc": "Cura 45 PV a todos los aliados vivos.",
             "max_hp": 150.0,
-            "damage": 30.0,
+            "damage": 27.0,
             "radius": 29.0,
             "armor": 0.08,
-            "color": Color("55e6a5")
+            "color": Color("e7c36a"),
+            "sprite_path": "res://assets/heroes/arelia.webp",
+            "sprite_scale": 1.12
         },
         {
-            "name": "FLUX",
+            "name": "KAIEN",
             "archetype": "CONTROL",
-            "ability": "CAMPO ESTÁTICO",
-            "ability_desc": "Anula por completo la siguiente fase enemiga.",
+            "class_label": "NINJA",
+            "role_label": "ASESINO / MOVILIDAD",
+            "ability": "MAREA SOMBRÍA",
+            "ability_desc": "Desorienta al enemigo y anula por completo la siguiente fase enemiga.",
             "max_hp": 135.0,
-            "damage": 32.0,
+            "damage": 34.0,
             "radius": 28.0,
             "armor": 0.05,
-            "color": Color("f1cb55")
+            "color": Color("3db8e6"),
+            "sprite_path": "res://assets/heroes/kaien.webp",
+            "sprite_scale": 1.13
         }
     ]
 
@@ -184,13 +200,13 @@ static func enemy_stats(kind: String, level_number: int) -> Dictionary:
             }
         "boss":
             return {
-                "name": "ARCONTE VECTORIAL",
-                "max_hp": 390.0,
+                "name": "THAL'KRYN",
+                "max_hp": 460.0,
                 "damage": 42.0,
-                "radius": 48.0,
-                "armor": 0.20,
+                "radius": 52.0,
+                "armor": 0.22,
                 "ai_speed": 670.0,
-                "color": Color("ff477e"),
+                "color": Color("5cd8e8"),
                 "glyph": "boss"
             }
         _:

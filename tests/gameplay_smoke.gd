@@ -1,7 +1,13 @@
 extends SceneTree
 
 func _init() -> void:
-    GameState.current_level = 1
+    var state = get_root().get_node_or_null("GameState")
+    if state == null:
+        push_error("GameState no está disponible en el árbol de pruebas.")
+        quit(1)
+        return
+
+    state.current_level = 1
 
     var packed := load("res://scenes/game.tscn")
     if packed == null or not packed is PackedScene:

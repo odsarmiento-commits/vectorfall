@@ -150,7 +150,7 @@ static func level_defs() -> Array:
             "enemies": [
                 {"type": "hunter", "pos": Vector2(1005, 185)},
                 {"type": "brute", "pos": Vector2(1090, 270)},
-                {"type": "boss", "pos": Vector2(1000, 365)},
+                {"type": "boss", "pos": Vector2(640, 245)},
                 {"type": "sentinel", "pos": Vector2(1095, 465)},
                 {"type": "hunter", "pos": Vector2(995, 545)}
             ]
@@ -207,7 +207,9 @@ static func enemy_stats(kind: String, level_number: int) -> Dictionary:
                 "armor": 0.22,
                 "ai_speed": 670.0,
                 "color": Color("5cd8e8"),
-                "glyph": "boss"
+                "glyph": "boss",
+                "sprite_path": "res://assets/enemies/thal_kryn.webp",
+                "sprite_scale": 1.45
             }
         _:
             return {

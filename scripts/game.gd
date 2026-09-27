@@ -3,7 +3,7 @@ extends Node2D
 const ACTOR_SCRIPT = preload("res://scripts/arena_actor.gd")
 const DATA = preload("res://scripts/game_data.gd")
 
-const ARENA := Rect2(54.0, 116.0, 1172.0, 480.0)
+const ARENA := Rect2(72.0, 112.0, 1136.0, 486.0)
 const MAX_DRAG := 190.0
 const STOP_SPEED := 68.0
 const BOUNCE := 0.86
@@ -113,7 +113,7 @@ func _build_ui() -> void:
     add_child(ui)
 
     var top := ColorRect.new()
-    top.color = Color(0.025, 0.045, 0.085, 0.97)
+    top.color = Color(0.018, 0.028, 0.065, 0.92)
     top.position = Vector2.ZERO
     top.size = Vector2(1280, 98)
     ui.add_child(top)
@@ -122,7 +122,7 @@ func _build_ui() -> void:
     level_label.position = Vector2(28, 14)
     level_label.size = Vector2(620, 34)
     level_label.add_theme_font_size_override("font_size", 23)
-    level_label.add_theme_color_override("font_color", level_data["accent"])
+    level_label.add_theme_color_override("font_color", Color("e8c878"))
     ui.add_child(level_label)
 
     phase_label = Label.new()
@@ -137,11 +137,11 @@ func _build_ui() -> void:
     round_label.size = Vector2(180, 32)
     round_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
     round_label.add_theme_font_size_override("font_size", 17)
-    round_label.add_theme_color_override("font_color", Color("9fb0c9"))
+    round_label.add_theme_color_override("font_color", Color("d5b76a"))
     ui.add_child(round_label)
 
     var title := Label.new()
-    title.text = "VECTORFALL"
+    title.text = "VECTORFALL · ABYSS TRIAL"
     title.position = Vector2(1010, 18)
     title.size = Vector2(235, 38)
     title.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -150,7 +150,7 @@ func _build_ui() -> void:
     ui.add_child(title)
 
     var bottom := ColorRect.new()
-    bottom.color = Color(0.025, 0.045, 0.085, 0.98)
+    bottom.color = Color(0.018, 0.028, 0.065, 0.94)
     bottom.position = Vector2(0, 610)
     bottom.size = Vector2(1280, 110)
     ui.add_child(bottom)
@@ -234,10 +234,10 @@ func _build_ui() -> void:
 
 func _spawn_heroes() -> void:
     var positions := [
-        Vector2(175, 190),
-        Vector2(170, 305),
-        Vector2(175, 420),
-        Vector2(170, 535)
+        Vector2(300, 520),
+        Vector2(585, 535),
+        Vector2(720, 535),
+        Vector2(1000, 520)
     ]
 
     var defs := DATA.hero_defs()
@@ -581,7 +581,7 @@ func _finish(victory: bool) -> void:
         else:
             _call_game_state("complete_campaign")
             result_title.text = "BETA COMPLETADA"
-            result_text.text = "La Corona Vectorial cayó. Completaste los cinco niveles de la campaña beta."
+            result_text.text = "Thal'Kryn cayó y la Corona Vectorial quedó sellada. Completaste los cinco niveles de la campaña beta."
             next_button.text = "VOLVER A CAMPAÑA"
             next_button.visible = true
     else:
@@ -662,7 +662,7 @@ func _update_hud() -> void:
         if active_actor.team == "hero":
             status_label.text = "%s · %s\nPV %d/%d  ·  ESCUDO %d  ·  DAÑO %d" % [
                 active_actor.actor_name,
-                active_actor.archetype,
+                active_actor.role_label,
                 ceili(active_actor.hp),
                 ceili(active_actor.max_hp),
                 ceili(active_actor.shield),
@@ -737,41 +737,82 @@ func _heal_popup(pos: Vector2, amount: float) -> void:
     tween.chain().tween_callback(label.queue_free)
 
 func _draw() -> void:
-    draw_rect(Rect2(Vector2.ZERO, Vector2(1280, 720)), Color("07101f"), true)
-    draw_rect(ARENA, Color("0a1729"), true)
-
     var accent: Color = level_data.get("accent", Color("49c9ff"))
-    var grid := Color(accent.r, accent.g, accent.b, 0.08)
+    var center := Vector2(640, 355)
+    var arena_radius := 286.0
 
-    var x := ARENA.position.x + 40.0
-    while x < ARENA.end.x:
-        draw_line(Vector2(x, ARENA.position.y), Vector2(x, ARENA.end.y), grid, 1.0)
-        x += 40.0
+    # Fondo nocturno / vacío.
+    draw_rect(Rect2(Vector2.ZERO, Vector2(1280, 720)), Color("080c1b"), true)
+    draw_circle(Vector2(95, 185), 185.0, Color(0.10, 0.08, 0.26, 0.38))
+    draw_circle(Vector2(1180, 200), 210.0, Color(0.08, 0.12, 0.30, 0.36))
+    draw_circle(Vector2(1130, 545), 180.0, Color(0.17, 0.06, 0.23, 0.28))
+    draw_circle(Vector2(120, 555), 170.0, Color(0.05, 0.15, 0.26, 0.30))
 
-    var y := ARENA.position.y + 40.0
-    while y < ARENA.end.y:
-        draw_line(Vector2(ARENA.position.x, y), Vector2(ARENA.end.x, y), grid, 1.0)
-        y += 40.0
+    # Plataforma circular de piedra.
+    draw_circle(center, arena_radius + 34.0, Color("11172d"))
+    draw_circle(center, arena_radius + 24.0, Color("242945"))
+    draw_circle(center, arena_radius + 12.0, Color("3b3a4c"))
+    draw_circle(center, arena_radius, Color("51474a"))
 
-    draw_rect(ARENA, Color(accent.r, accent.g, accent.b, 0.55), false, 3.0)
+    # Anillos tallados y runas.
+    for r in [266.0, 238.0, 205.0, 170.0, 132.0, 92.0, 52.0]:
+        draw_arc(center, r, 0.0, TAU, 96, Color(0.72, 0.52, 0.22, 0.58), 2.0, true)
 
+    for spoke in range(8):
+        var angle := -PI * 0.5 + float(spoke) * TAU / 8.0
+        var inner := center + Vector2(cos(angle), sin(angle)) * 54.0
+        var outer := center + Vector2(cos(angle), sin(angle)) * 236.0
+        draw_line(inner, outer, Color(accent.r, accent.g, accent.b, 0.30), 2.0, true)
+
+    # Símbolo central.
+    var rune_points := PackedVector2Array()
+    for i in range(8):
+        var angle := -PI * 0.5 + float(i) * PI / 4.0
+        var rr := 74.0 if i % 2 == 0 else 36.0
+        rune_points.append(center + Vector2(cos(angle), sin(angle)) * rr)
+    rune_points.append(rune_points[0])
+    draw_polyline(rune_points, Color(accent.r, accent.g, accent.b, 0.72), 3.0, true)
+    draw_circle(center, 22.0, Color(accent.r, accent.g, accent.b, 0.16))
+    draw_arc(center, 34.0, 0.0, TAU, 40, Color(accent.r, accent.g, accent.b, 0.80), 3.0, true)
+
+    # Puntos de peligro en niveles avanzados.
+    if current_level >= 3:
+        var danger_positions := [
+            center + Vector2(-225, -45),
+            center + Vector2(225, -55),
+            center + Vector2(205, 120)
+        ]
+        for danger_pos in danger_positions:
+            draw_circle(danger_pos, 54.0, Color(0.78, 0.08, 0.18, 0.15))
+            draw_arc(danger_pos, 54.0, 0.0, TAU, 48, Color(1.0, 0.25, 0.35, 0.62), 3.0, true)
+            draw_line(danger_pos + Vector2(-12, 0), danger_pos + Vector2(12, 0), Color(1.0, 0.38, 0.44, 0.75), 2.0)
+            draw_line(danger_pos + Vector2(0, -12), danger_pos + Vector2(0, 12), Color(1.0, 0.38, 0.44, 0.75), 2.0)
+
+    # Aura especial para el nivel de Thal'Kryn.
+    if current_level == 5:
+        var boss_focus := Vector2(640, 225)
+        for r in [92.0, 70.0, 48.0]:
+            draw_arc(boss_focus, r, 0.0, TAU, 64, Color(0.70, 0.28, 1.0, 0.52), 3.0, true)
+
+    # Obstáculos: pilares de piedra con borde dorado.
     for obstacle in obstacles:
-        draw_rect(obstacle, Color("142d49"), true)
-        draw_rect(obstacle, Color(accent.r, accent.g, accent.b, 0.46), false, 2.0)
+        draw_rect(obstacle, Color("242b40"), true)
+        draw_rect(obstacle, Color(0.75, 0.56, 0.27, 0.82), false, 2.0)
+        var inset := obstacle.grow(-7.0)
+        draw_rect(inset, Color(accent.r, accent.g, accent.b, 0.08), true)
 
     for hero in heroes:
-        _draw_trail(hero, Color(0.35, 0.82, 1.0, 0.25))
-
+        _draw_trail(hero, Color(0.35, 0.82, 1.0, 0.26))
     for enemy in enemies:
-        _draw_trail(enemy, Color(1.0, 0.34, 0.50, 0.20))
+        _draw_trail(enemy, Color(0.80, 0.26, 1.0, 0.23))
 
     if dragging and phase == "player_aim" and active_actor != null:
         var pull: Vector2 = active_actor.position - drag_mouse
         var clamped: Vector2 = pull.limit_length(MAX_DRAG)
         var release_point: Vector2 = active_actor.position - clamped
 
-        draw_line(active_actor.position, release_point, Color("f9e36a"), 4.0)
-        draw_circle(release_point, 8.0, Color("f9e36a"))
+        draw_line(active_actor.position, release_point, Color("f5d574"), 4.0, true)
+        draw_circle(release_point, 8.0, Color("f5d574"))
 
         if clamped.length() > 24.0:
             var direction: Vector2 = clamped.normalized()
@@ -779,7 +820,7 @@ func _draw() -> void:
                 draw_circle(
                     active_actor.position + direction * 43.0 * i,
                     maxf(2.0, 6.0 - float(i) * 0.4),
-                    Color(0.55, 0.92, 1.0, 0.65)
+                    Color(0.55, 0.92, 1.0, 0.68)
                 )
 
 func _draw_trail(actor, color: Color) -> void:

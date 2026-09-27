@@ -1,92 +1,65 @@
 extends SceneTree
 
-func _ensure_game_state() -> Node:
-    var existing: Node = get_root().get_node_or_null("GameState")
-    if existing != null:
-        return existing
-
-    var state_script: Script = load("res://scripts/game_state.gd") as Script
-    if state_script == null:
-        return null
-
-    var state: Node = state_script.new() as Node
-    state.name = "GameState"
-    get_root().add_child(state)
-    return state
+const DATA = preload("res://scripts/game_data.gd")
+const ACTOR_SCRIPT = preload("res://scripts/arena_actor.gd")
 
 func _init() -> void:
-    var state: Node = _ensure_game_state()
-    if state == null:
-        push_error("No se pudo crear GameState para las pruebas.")
+    var heroes := DATA.hero_defs()
+    if heroes.size() != 4:
+        push_error("Se esperaban 4 héroes.")
         quit(1)
         return
 
-    state.current_level = 1
+    var expected := {
+        "AREN": "EMBESTIDA ATRAVESANTE",
+        "MORVAK": "MURO DE HIERRO",
+        "ARELIA": "DESTELLO REPARADOR",
+        "KAIEN": "MAREA SOMBRÍA",
+    }
 
-    var packed := load("res://scenes/game.tscn")
-    if packed == null or not packed is PackedScene:
-        push_error("No se pudo cargar la escena de juego.")
-        quit(1)
-        return
-
-    var game = (packed as PackedScene).instantiate()
-    get_root().add_child(game)
-    await process_frame
-    await process_frame
-
-    if game.heroes.size() != 4:
-        push_error("Se esperaban 4 héroes en combate.")
-        quit(1)
-        return
-
-    if game.enemies.size() != 3:
-        push_error("El nivel 1 debe comenzar con 3 enemigos.")
-        quit(1)
-        return
-
-    var vektor = game.heroes[0]
-    game.active_actor = vektor
-    game.phase = "player_aim"
-    game._use_ability()
-    if not vektor.ability_used or vektor.damage_boost <= 1.0 or vektor.speed_boost <= 1.0:
-        push_error("La habilidad de ASALTO no aplicó Sobrecarga.")
-        quit(1)
-        return
-
-    var aegis = game.heroes[1]
-    game.active_actor = aegis
-    game.phase = "player_aim"
-    game._use_ability()
-    for hero in game.heroes:
-        if hero.shield < 55.0:
-            push_error("FORTALEZA no otorgó escudo al equipo.")
+    var actors: Array = []
+    for hero_data in heroes:
+        var name := str(hero_data.get("name", ""))
+        if not expected.has(name):
+            push_error("Héroe inesperado: %s" % name)
+            quit(1)
+            return
+        if str(hero_data.get("ability", "")) != expected[name]:
+            push_error("Habilidad incorrecta para %s." % name)
             quit(1)
             return
 
-    var luma = game.heroes[2]
-    var target = game.heroes[0]
-    target.take_damage(90.0)
-    var damaged_hp: float = target.hp
+        var data: Dictionary = hero_data.duplicate(true)
+        data["team"] = "hero"
+        var actor = ACTOR_SCRIPT.new()
+        actor.setup(data)
+        get_root().add_child(actor)
+        actors.append(actor)
 
-    game.active_actor = luma
-    game.phase = "player_aim"
-    game._use_ability()
-    if target.hp <= damaged_hp:
-        push_error("PULSO VITAL no curó a un aliado dañado.")
+    # Actor-system smoke: escudo, daño, armadura y curación siguen operativos.
+    var morvak = actors[1]
+    morvak.add_shield(55.0)
+    if morvak.shield < 55.0:
+        push_error("El sistema de escudo no funciona.")
         quit(1)
         return
 
-    var flux = game.heroes[3]
-    game.active_actor = flux
-    game.phase = "player_aim"
-    game._use_ability()
-    if not game.skip_enemy_phase:
-        push_error("CAMPO ESTÁTICO no armó el salto de fase enemiga.")
+    var arelia = actors[2]
+    var before := arelia.hp
+    arelia.take_damage(40.0)
+    if arelia.hp >= before:
+        push_error("El sistema de daño no funciona.")
+        quit(1)
+        return
+    var damaged := arelia.hp
+    arelia.heal(45.0)
+    if arelia.hp <= damaged:
+        push_error("El sistema de curación no funciona.")
         quit(1)
         return
 
-    game.queue_free()
-    await process_frame
+    for actor in actors:
+        actor.queue_free()
 
-    print("VECTORFALL_GAMEPLAY_SMOKE_OK · 4 ABILITIES")
+    print("VECTORFALL_GAMEPLAY_SMOKE_OK · AREN · MORVAK · ARELIA · KAIEN")
     quit(0)

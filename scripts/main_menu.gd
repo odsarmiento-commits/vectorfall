@@ -17,13 +17,13 @@ func _ready() -> void:
 
 func _build_background() -> void:
     var bg := ColorRect.new()
-    bg.color = Color("07101f")
+    bg.color = Color("080c1b")
     bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(bg)
 
     var band := ColorRect.new()
-    band.color = Color("0b1b32")
+    band.color = Color("11182f")
     band.position = Vector2(0, 0)
     band.size = Vector2(1280, 96)
     band.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -39,7 +39,7 @@ func _build_header() -> void:
     add_child(title)
 
     var tag := Label.new()
-    tag.text = "BETA · 4 AGENTES · 5 NIVELES"
+    tag.text = "BETA VISUAL · 4 HÉROES · 5 NIVELES"
     tag.position = Vector2(910, 34)
     tag.size = Vector2(310, 30)
     tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -48,7 +48,7 @@ func _build_header() -> void:
     add_child(tag)
 
     var intro := Label.new()
-    intro.text = "Lanza, rebota y encadena impactos. Cada agente cubre un rol distinto."
+    intro.text = "Aren · Morvak · Arelia · Kaien — atraviesa cinco arenas y enfrenta a Thal'Kryn."
     intro.position = Vector2(54, 112)
     intro.size = Vector2(1160, 32)
     intro.add_theme_font_size_override("font_size", 20)
@@ -90,57 +90,80 @@ func _build_level_panel() -> void:
 
 func _build_roster() -> void:
     var heading := Label.new()
-    heading.text = "EQUIPO VECTOR"
+    heading.text = "HÉROES"
     heading.position = Vector2(620, 166)
     heading.size = Vector2(590, 32)
     heading.add_theme_font_size_override("font_size", 24)
-    heading.add_theme_color_override("font_color", Color("f4f7ff"))
+    heading.add_theme_color_override("font_color", Color("e8c878"))
     add_child(heading)
 
     var grid := GridContainer.new()
     grid.columns = 2
     grid.position = Vector2(620, 208)
-    grid.size = Vector2(590, 318)
+    grid.size = Vector2(590, 330)
     grid.add_theme_constant_override("h_separation", 12)
     grid.add_theme_constant_override("v_separation", 12)
     add_child(grid)
 
     for hero_data in DATA.hero_defs():
         var card := PanelContainer.new()
-        card.custom_minimum_size = Vector2(285, 145)
+        card.custom_minimum_size = Vector2(285, 152)
         grid.add_child(card)
 
+        var row := HBoxContainer.new()
+        row.add_theme_constant_override("separation", 10)
+        card.add_child(row)
+
+        var portrait := TextureRect.new()
+        portrait.custom_minimum_size = Vector2(92, 132)
+        portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+        var sprite_path := str(hero_data.get("sprite_path", ""))
+        if not sprite_path.is_empty() and ResourceLoader.exists(sprite_path):
+            portrait.texture = load(sprite_path)
+        row.add_child(portrait)
+
         var box := VBoxContainer.new()
-        box.add_theme_constant_override("separation", 5)
-        card.add_child(box)
+        box.custom_minimum_size = Vector2(165, 132)
+        box.add_theme_constant_override("separation", 4)
+        row.add_child(box)
 
         var name_label := Label.new()
-        name_label.text = "%s  ·  %s" % [hero_data["name"], hero_data["archetype"]]
-        name_label.add_theme_font_size_override("font_size", 19)
+        name_label.text = str(hero_data["name"])
+        name_label.add_theme_font_size_override("font_size", 20)
         name_label.add_theme_color_override("font_color", hero_data["color"])
         box.add_child(name_label)
 
+        var role := Label.new()
+        role.text = "%s · %s" % [
+            str(hero_data.get("class_label", hero_data["archetype"])),
+            str(hero_data.get("role_label", hero_data["archetype"]))
+        ]
+        role.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+        role.add_theme_font_size_override("font_size", 12)
+        role.add_theme_color_override("font_color", Color("c8d3e6"))
+        box.add_child(role)
+
         var stats := Label.new()
-        stats.text = "PV %d   DAÑO %d   ARM %d%%" % [
+        stats.text = "PV %d · DAÑO %d · ARM %d%%" % [
             int(hero_data["max_hp"]),
             int(hero_data["damage"]),
             roundi(float(hero_data["armor"]) * 100.0)
         ]
-        stats.add_theme_font_size_override("font_size", 13)
-        stats.add_theme_color_override("font_color", Color("b9c6d8"))
+        stats.add_theme_font_size_override("font_size", 11)
+        stats.add_theme_color_override("font_color", Color("91a4c0"))
         box.add_child(stats)
 
         var ability := Label.new()
-        ability.text = "%s — %s" % [hero_data["ability"], hero_data["ability_desc"]]
+        ability.text = str(hero_data["ability"])
         ability.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-        ability.custom_minimum_size = Vector2(255, 55)
-        ability.add_theme_font_size_override("font_size", 13)
-        ability.add_theme_color_override("font_color", Color("d9e2ef"))
+        ability.add_theme_font_size_override("font_size", 12)
+        ability.add_theme_color_override("font_color", Color("efd182"))
         box.add_child(ability)
 
     var footer := Label.new()
-    footer.text = "Todos los gráficos de esta beta son originales y generados por el propio proyecto."
-    footer.position = Vector2(620, 542)
+    footer.text = "Sprites 2.5D integrados desde las hojas de diseño de Aren, Morvak, Arelia y Kaien."
+    footer.position = Vector2(620, 550)
     footer.size = Vector2(590, 42)
     footer.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     footer.add_theme_font_size_override("font_size", 13)

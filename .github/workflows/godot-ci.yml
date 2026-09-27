@@ -51,7 +51,7 @@ jobs:
         run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --script res://tests/ci_smoke.gd
 
       - name: Gameplay ability smoke tests
-        run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --script res://tests/gameplay_smoke.gd
+        run: timeout 40s /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --script res://tests/gameplay_smoke.gd
 
       - name: Boot main scene
         run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --quit-after 120

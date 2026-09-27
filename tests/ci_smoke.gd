@@ -59,9 +59,26 @@ func _validate_content() -> bool:
         "APOYO": false,
         "CONTROL": false,
     }
+    var required_names := {
+        "AREN": false,
+        "MORVAK": false,
+        "ARELIA": false,
+        "KAIEN": false,
+    }
 
     for hero in heroes:
         var role := str(hero.get("archetype", ""))
+        var hero_name := str(hero.get("name", ""))
+        if not required_names.has(hero_name):
+            push_error("Héroe visual no reconocido: %s" % hero_name)
+            return false
+        required_names[hero_name] = true
+
+        var sprite_path := str(hero.get("sprite_path", ""))
+        if sprite_path.is_empty() or not ResourceLoader.exists(sprite_path):
+            push_error("Falta el sprite visual de %s: %s" % [hero_name, sprite_path])
+            return false
+
         if not required_roles.has(role):
             push_error("Arquetipo de héroe no reconocido: %s" % role)
             return false
@@ -75,6 +92,19 @@ func _validate_content() -> bool:
         if not required_roles[role]:
             push_error("Falta el rol obligatorio: %s" % role)
             return false
+
+    for hero_name in required_names:
+        if not required_names[hero_name]:
+            push_error("Falta el héroe obligatorio: %s" % hero_name)
+            return false
+
+    var boss_data := DATA.enemy_stats("boss", 5)
+    if str(boss_data.get("name", "")) != "THAL'KRYN":
+        push_error("El jefe final debe ser Thal'Kryn.")
+        return false
+    if not ResourceLoader.exists(str(boss_data.get("sprite_path", ""))):
+        push_error("Falta el sprite de Thal'Kryn.")
+        return false
 
     var levels := DATA.level_defs()
     if levels.size() != 5:

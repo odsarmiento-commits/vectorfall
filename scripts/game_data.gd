@@ -4,48 +4,52 @@ class_name GameData
 static func hero_defs() -> Array:
     return [
         {
-            "name": "VEKTOR",
+            "name": "AREN",
             "archetype": "ASALTO",
-            "ability": "SOBRECARGA",
+            "ability": "EMBESTIDA ATRAVESANTE",
             "ability_desc": "El siguiente lanzamiento gana +75% daño y +18% velocidad.",
-            "max_hp": 120.0,
+            "max_hp": 128.0,
             "damage": 42.0,
-            "radius": 27.0,
+            "radius": 29.0,
             "armor": 0.0,
-            "color": Color("43d7ff")
+            "color": Color("4aa8ff"),
+            "sprite_path": "res://assets/heroes/aren_sprite.png"
         },
         {
-            "name": "AEGIS",
+            "name": "MORVAK",
             "archetype": "TANQUE",
-            "ability": "FORTALEZA",
+            "ability": "MURO DE HIERRO",
             "ability_desc": "Otorga 55 de escudo a todo el equipo.",
-            "max_hp": 220.0,
+            "max_hp": 230.0,
             "damage": 28.0,
-            "radius": 34.0,
-            "armor": 0.24,
-            "color": Color("8978ff")
+            "radius": 36.0,
+            "armor": 0.26,
+            "color": Color("a65b4f"),
+            "sprite_path": "res://assets/heroes/morvak_sprite.png"
         },
         {
-            "name": "LUMA",
+            "name": "ARELIA",
             "archetype": "APOYO",
-            "ability": "PULSO VITAL",
+            "ability": "DESTELLO REPARADOR",
             "ability_desc": "Cura 45 PV a todos los aliados vivos.",
             "max_hp": 150.0,
-            "damage": 30.0,
+            "damage": 29.0,
             "radius": 29.0,
             "armor": 0.08,
-            "color": Color("55e6a5")
+            "color": Color("f0d695"),
+            "sprite_path": "res://assets/heroes/arelia_sprite.png"
         },
         {
-            "name": "FLUX",
+            "name": "KAIEN",
             "archetype": "CONTROL",
-            "ability": "CAMPO ESTÁTICO",
+            "ability": "MAREA SOMBRÍA",
             "ability_desc": "Anula por completo la siguiente fase enemiga.",
             "max_hp": 135.0,
-            "damage": 32.0,
+            "damage": 33.0,
             "radius": 28.0,
             "armor": 0.05,
-            "color": Color("f1cb55")
+            "color": Color("238ad0"),
+            "sprite_path": "res://assets/heroes/kaien_sprite.png"
         }
     ]
 
@@ -121,8 +125,8 @@ static func level_defs() -> Array:
         },
         {
             "number": 5,
-            "name": "CORONA VECTORIAL",
-            "subtitle": "Asalto al corazón de la red",
+            "name": "CORONA DEL ABISMO",
+            "subtitle": "Despertar de Thal'Kryn",
             "accent": Color("ff5d8f"),
             "obstacles": [
                 Rect2(455, 210, 70, 120),
@@ -184,14 +188,15 @@ static func enemy_stats(kind: String, level_number: int) -> Dictionary:
             }
         "boss":
             return {
-                "name": "ARCONTE VECTORIAL",
+                "name": "THAL'KRYN",
                 "max_hp": 390.0,
                 "damage": 42.0,
                 "radius": 48.0,
                 "armor": 0.20,
                 "ai_speed": 670.0,
                 "color": Color("ff477e"),
-                "glyph": "boss"
+                "glyph": "boss",
+                "sprite_path": "res://assets/heroes/thal_kryn_sprite.png"
             }
         _:
             return {

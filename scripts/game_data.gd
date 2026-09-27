@@ -11,7 +11,7 @@ static func hero_defs() -> Array:
             "ability": "EMBESTIDA ATRAVESANTE",
             "ability_desc": "El siguiente lanzamiento gana +75% daño y +18% velocidad.",
             "max_hp": 125.0,
-            "damage": 44.0,
+            "damage": 42.0,
             "radius": 29.0,
             "armor": 0.04,
             "color": Color("58b9ff"),
@@ -202,7 +202,7 @@ static func enemy_stats(kind: String, level_number: int) -> Dictionary:
             return {
                 "name": "THAL'KRYN",
                 "max_hp": 460.0,
-                "damage": 42.0,
+                "damage": 44.0,
                 "radius": 52.0,
                 "armor": 0.22,
                 "ai_speed": 670.0,

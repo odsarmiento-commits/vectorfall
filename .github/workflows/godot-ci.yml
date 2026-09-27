@@ -9,7 +9,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
 
@@ -17,7 +17,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -L --fail --retry 3 -o /tmp/godot.zip             https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          curl -L --fail --retry 3 -o /tmp/godot.zip \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
           unzip -q /tmp/godot.zip -d /tmp/godot
           BIN="$(find /tmp/godot -maxdepth 1 -type f -name 'Godot_v4.6.3-stable_linux.x86_64*' | head -n1)"
           chmod +x "$BIN"
@@ -27,8 +28,35 @@ jobs:
       - name: Import and parse project
         run: /tmp/godot/godot --headless --editor --path "$GITHUB_WORKSPACE" --quit
 
-      - name: Smoke tests
+      - name: Content and scene smoke tests
         run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --script res://tests/ci_smoke.gd
 
       - name: Boot main scene
         run: /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --quit-after 120
+
+      - name: Install export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 -o /tmp/templates.tpz \
+            https://github.com/godotengine/godot-builds/releases/download/4.6.3-stable/Godot_v4.6.3-stable_export_templates.tpz
+          rm -rf /tmp/godot_templates
+          mkdir -p /tmp/godot_templates
+          unzip -q /tmp/templates.tpz -d /tmp/godot_templates
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.6.3.stable"
+          cp -R /tmp/godot_templates/templates/. "$HOME/.local/share/godot/export_templates/4.6.3.stable/"
+
+      - name: Export Windows beta
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          /tmp/godot/godot --headless --path "$GITHUB_WORKSPACE" --export-release "Windows Desktop" build/VECTORFALL_Beta.exe
+          test -f build/VECTORFALL_Beta.exe
+
+      - name: Upload playable beta
+        uses: actions/upload-artifact@v4
+        with:
+          name: VECTORFALL_Beta_Windows
+          path: build/**
+          if-no-files-found: error
